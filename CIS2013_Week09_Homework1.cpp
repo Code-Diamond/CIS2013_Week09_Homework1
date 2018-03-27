@@ -75,29 +75,60 @@ int main()
             cout << "There was an error opening the file.";
             exit(1);
         }
-        char currentKey;
-
+        //Glean rotation key from the otpKey
+        char otpKey;
+        int rotationKey[e.length()];
         for(int i = 0; i < e.length(); i++)
         {
-            ifs >> currentKey;
+            ifs >> otpKey;
             for(int j = 0; j < 27; j++)
             {
-                if(currentKey == c[j])
+                if(otpKey == c[j])
                 {
-                    cout << currentKey << " : " << j << endl;
+                    cout << otpKey << " : " << j << endl;
+                    rotationKey[i] = j;
                 }
             }
-
         }
+
+        cout << "-------------" << endl;
+
+        //Glean current key
+        int currentKey[e.length()];
+        for(int i = 0; i < e.length(); i++)
+        {
+            for(int j = 0; j < 27; j++)
+            {
+                if(e[i] == c[j])
+                {
+                    cout << e[i] << " : " << j << endl;
+                    currentKey[i] = j;
+                }
+            }
+        }
+
+        //Create final string for encrypted message
+        string f;
+
+
     }
     //If the user types in decrypt
     if(d == "DECRYPT")
     {
         cout << "Hey";
     }
-  
+
+
+
+
+
+
+
+
     return 0;
 }
+
+
 
 //Function that generates a random number
 int rng(int max)
