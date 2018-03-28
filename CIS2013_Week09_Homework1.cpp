@@ -11,6 +11,8 @@ using namespace std;
 //Functions
 int rng(int);
 void generateOTP();
+bool doesFileExist(char[256]);
+
 //Global Variables
 
 //User's encryption/decryption decision string
@@ -19,6 +21,9 @@ string d;
 char e[1000];
 //Encrypted Message
 char f[1000];
+
+char lastRKey[1000];
+
 //Locale object
 locale l;
 //Character array
@@ -34,19 +39,53 @@ int main()
 {
     while(loopController=='Y' || loopController=='y')
     {
-        //Create a file named otp.dat
-        ofs.open("otp.dat");
-        //Error typically happens from read or write privileges
-        if(ofs.fail())
+        //Prompt user to either load or generate a OTP
+
+        char openFileDecision;
+        char fileName[256];
+
+        cout << "Would you like to open a pre-made one time pad? (y/n)", cin >> openFileDecision;
+
+        if(openFileDecision == 'y' || openFileDecision == 'Y')
         {
-            cout << "Unable to open the one time pad.";
-            exit(1);
+            cout << "\nEnter the file name on the following line..\n--Please ensure you have the extension as well.\n\nFile name: ", cin >> fileName;
+            //Check if the file exists
+            if(doesFileExist(fileName))
+            {
+                ofs.open(fileName);
+                //Error typically happens from read or write privileges
+                if(ofs.fail())
+                {
+                    cout << "Unable to open the one time pad.";
+                    exit(1);
+                }
+            }
+            else
+            {
+                cout << "\nThe file you entered does not exist. \nEnsure you have the correct file name before running again.\nExiting!\n" << endl;
+                exit(1);
+            }
+
         }
+        else
+        {
+            cout << "\nGenerating the one time pad . . ." << endl;
+            generateOTP();
+            ofs.open("otp.dat");
+            //Error typically happens from read or write privileges
+            if(ofs.fail())
+            {
+                cout << "Unable to open the one time pad.";
+                exit(1);
+            }
+
+        }
+
+        //Prompt user if they want to encrypt or decrypt
 
         //Use time as a seed for the rng
         srand(time(NULL));
 
-        generateOTP();
 
         cout << "Would you like to \"Encrypt\" or \"Decrypt\"?: ", cin >> d, cout << endl;
 
@@ -56,17 +95,18 @@ int main()
         {
             d[i] = toupper(d[i],l);
         }
-        //Trick to clear cin's error flags 
+
+        //Trick to clear cin's error flags
         cin.seekg(0,ios::end);
         cin.clear();
 
 
-        
+
         //If the user types in encrypt
         if(d == "ENCRYPT")
         {
             cout << "Type in what you want to encrypt on the following line. . .\n";
-            
+
             //Receive input
             cin.getline(e, 1000);
             //Get length
@@ -88,13 +128,14 @@ int main()
                 {
                     if(otpKey == c[j])
                     {
-                        cout << i << " - " << otpKey << " : " << j << endl;
+                        //cout << i << " - " << otpKey << " : " << j << endl;
                         rotationKey[i] = j;
+                        lastRKey[i] = j;
                     }
                 }
             }
 
-            cout << "-------------" << endl;
+            //cout << "-------------" << endl;
 
             //Glean current key
             int currentKey[length];
@@ -104,32 +145,75 @@ int main()
                 {
                     if(e[i] == c[j])
                     {
-                        cout << i << " - " << e[i] << " : " << j << endl;
+                        //cout << i << " - " << e[i] << " : " << j << endl;
                         currentKey[i] = j;
                     }
                 }
             }
 
-            cout << "-------------" << endl;
+            //cout << "-------------" << endl;
 
-            //Create final string for encrypted message
-
+            //Create final encrypted message
             for(int i = 0; i < length; i++)
             {
                 int newKey = currentKey[i] + rotationKey[i];
                 newKey = newKey % 27;
-                cout << i << " - " << c[newKey] << endl;
+                //cout << i << " - " << c[newKey] << endl;
+                f[i] = c[newKey];
             }
 
+            cout << "\nYour encrypted message...\n";
+
+            //Print encrypted message
+            for(int i = 0; i < length; i++)
+            {
+                cout << f[i];
+            }
+            cout << endl;
+
         }
+
+
+        //In process of editing decryption algorithm
         //If the user types in decrypt
         if(d == "DECRYPT")
         {
-            cout << "Hey";
+            int length = strlen(f);
+            int currentKey[length];
+            //Determine current key
+            for(int i = 0; i < length; i++)
+            {
+                for(int j = 0; j < 27; j++)
+                {
+                    if(f[i] == c[j])
+                    {
+                        currentKey[i] = j;
+                    }
+                }
+            }
+            char decryptedMessage[length];
+            for(int i = 0; i < length; i++)
+            {
+                int newKey = currentKey[i] + lastRKey[i];
+                newKey = newKey % 27;
+                decryptedMessage[i] = c[newKey];
+            }
+
+
+            for(int i = 0; i < length; i++)
+            {
+                cout << decryptedMessage[i];
+            }
+            cout << endl;
         }
 
+
+
+
+
         cout << "Would you like to continue? (y/n): ", cin >> loopController, cout << endl;
-        //Close the file streams
+
+        //Close the file streams as to not encounter error when looping back through
         ofs.close();
         ifs.close();
     }
@@ -145,7 +229,7 @@ int rng(int max)
     int randomN = 1 + rand() % max;
     return randomN;
 }
-
+//Function generates a otp
 void generateOTP()
 {
     //Generates the One Time Pad file
@@ -161,3 +245,10 @@ void generateOTP()
         ofs << endl;
     }
 }
+//Function checks if the file exists
+bool doesFileExist(char fileName[256])
+{
+    ifstream infile(fileName);
+    return infile.good();
+}
+
