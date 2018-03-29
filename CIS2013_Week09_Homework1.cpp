@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <string.h>
+#include <cmath>
+
 using namespace std;
 
 //Functions
@@ -70,7 +72,6 @@ int main()
         else
         {
             cout << "\nGenerating the one time pad . . ." << endl;
-            generateOTP();
             ofs.open("otp.dat");
             //Error typically happens from read or write privileges
             if(ofs.fail())
@@ -78,6 +79,7 @@ int main()
                 cout << "Unable to open the one time pad.";
                 exit(1);
             }
+            generateOTP();
 
         }
 
@@ -121,6 +123,7 @@ int main()
             //Glean rotation key from the otpKey
             char otpKey;
             int rotationKey[length];
+            cout << "-------OTPKEY------" << endl;
             for(int i = 0; i < length; i++)
             {
                 ifs >> otpKey;
@@ -128,14 +131,14 @@ int main()
                 {
                     if(otpKey == c[j])
                     {
-                        //cout << i << " - " << otpKey << " : " << j << endl;
+                        cout << i << " - " << otpKey << " : " << j << endl;
                         rotationKey[i] = j;
                         lastRKey[i] = j;
                     }
                 }
             }
 
-            //cout << "-------------" << endl;
+            cout << "-------START------" << endl;
 
             //Glean current key
             int currentKey[length];
@@ -145,20 +148,20 @@ int main()
                 {
                     if(e[i] == c[j])
                     {
-                        //cout << i << " - " << e[i] << " : " << j << endl;
+                        cout << i << " - " << e[i] << " : " << j << endl;
                         currentKey[i] = j;
                     }
                 }
             }
 
-            //cout << "-------------" << endl;
+            cout << "------OUTPUT-------" << endl;
 
             //Create final encrypted message
             for(int i = 0; i < length; i++)
             {
                 int newKey = currentKey[i] + rotationKey[i];
                 newKey = newKey % 27;
-                //cout << i << " - " << c[newKey] << endl;
+                cout << i << " - " << c[newKey] << endl;
                 f[i] = c[newKey];
             }
 
@@ -194,8 +197,13 @@ int main()
             char decryptedMessage[length];
             for(int i = 0; i < length; i++)
             {
-                int newKey = currentKey[i] + lastRKey[i];
-                newKey = newKey % 27;
+                int newKey = currentKey[i] - lastRKey[i];
+
+                if(newKey < 0)
+                {
+                    newKey = 27 - abs(newKey);
+                }
+
                 decryptedMessage[i] = c[newKey];
             }
 
@@ -251,4 +259,3 @@ bool doesFileExist(char fileName[256])
     ifstream infile(fileName);
     return infile.good();
 }
-
