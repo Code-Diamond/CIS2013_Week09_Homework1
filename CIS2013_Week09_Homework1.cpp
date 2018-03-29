@@ -27,7 +27,7 @@ char f[1000];
 
 //Locale object
 locale l;
-//Character array
+//Character key array
 char c[27] = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',' '};
 //Create input and output file streams
 ofstream ofs;
@@ -35,7 +35,7 @@ ifstream ifs;
 
 char loopController = 'Y';
 
-//Main
+//Main function
 int main()
 {
     while(loopController=='Y' || loopController=='y')
@@ -102,8 +102,6 @@ int main()
         cin.seekg(0,ios::end);
         cin.clear();
 
-        // ofs.close();
-
         //If the user types in encrypt
         if(d == "ENCRYPT")
         {
@@ -168,9 +166,7 @@ int main()
             cout << endl;
 
         }
-
-
-        //In process of editing decryption algorithm
+        
         //If the user types in decrypt
         if(d == "DECRYPT")
         {
@@ -261,18 +257,16 @@ void generateOTP()
         exit(1);
     }
     //Generates the One Time Pad file
-    //Ten lines
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 10; i++)    //Ten lines
     {
-        //Fifty Characters
-        for(int j = 0; j < 50; j++)
+        for(int j = 0; j < 50; j++)        //Fifty Characters
         {
             //Write a random character to the file
             ofs << c[rng(27)-1];
         }
         ofs << endl;
     }
-
+    //Close output file stream each time function call
     ofs.close();
 }
 
