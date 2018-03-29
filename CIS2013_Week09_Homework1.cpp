@@ -8,6 +8,8 @@
 #include <string.h>
 #include <cmath>
 
+// Just a check
+
 using namespace std;
 
 //Functions
@@ -24,7 +26,6 @@ char e[1000];
 //Encrypted Message
 char f[1000];
 
-char lastRKey[1000];
 
 //Locale object
 locale l;
@@ -54,9 +55,9 @@ int main()
             //Check if the file exists
             if(doesFileExist(fileName))
             {
-                ofs.open(fileName);
+                ifs.open(fileName);
                 //Error typically happens from read or write privileges
-                if(ofs.fail())
+                if(ifs.fail())
                 {
                     cout << "Unable to open the one time pad.";
                     exit(1);
@@ -72,14 +73,15 @@ int main()
         else
         {
             cout << "\nGenerating the one time pad . . ." << endl;
-            ofs.open("otp.dat");
+            generateOTP();
+
+             ifs.open("otp.dat");
             //Error typically happens from read or write privileges
-            if(ofs.fail())
+            if(ifs.fail())
             {
                 cout << "Unable to open the one time pad.";
                 exit(1);
             }
-            generateOTP();
 
         }
 
@@ -102,7 +104,7 @@ int main()
         cin.seekg(0,ios::end);
         cin.clear();
 
-
+        // ofs.close();
 
         //If the user types in encrypt
         if(d == "ENCRYPT")
@@ -113,14 +115,8 @@ int main()
             cin.getline(e, 1000);
             //Get length
             int length = strlen(e);
-            //Open the otp
-            ifs.open("otp.dat");
-            if(ifs.fail())
-            {
-                cout << "There was an error opening the file.";
-                exit(1);
-            }
-            //Glean rotation key from the otpKey
+
+            //Glean rotation key from the OTP
             char otpKey;
             int rotationKey[length];
             cout << "-------OTPKEY------" << endl;
@@ -133,7 +129,6 @@ int main()
                     {
                         cout << i << " - " << otpKey << " : " << j << endl;
                         rotationKey[i] = j;
-                        lastRKey[i] = j;
                     }
                 }
             }
@@ -182,6 +177,14 @@ int main()
         if(d == "DECRYPT")
         {
             int length = strlen(f);
+
+            if(length == 0)
+            {
+                cout << "Enter in a message to decrypt:" << endl;
+                cin.getline(f, 1000);
+                length = strlen(f);
+            }
+
             int currentKey[length];
             //Determine current key
             for(int i = 0; i < length; i++)
@@ -194,10 +197,26 @@ int main()
                     }
                 }
             }
+            //Glean rotation key from the OTP
+            char otpKey;
+            int rotationKey[length];
+            for(int i = 0; i < length; i++)
+            {
+                ifs >> otpKey;
+                for(int j = 0; j < 27; j++)
+                {
+                    if(otpKey == c[j])
+                    {
+                        cout << i << " - " << otpKey << " : " << j << endl;
+                        rotationKey[i] = j;
+                    }
+                }
+            }
+            //Decrypt the message
             char decryptedMessage[length];
             for(int i = 0; i < length; i++)
             {
-                int newKey = currentKey[i] - lastRKey[i];
+                int newKey = currentKey[i] - rotationKey[i];
 
                 if(newKey < 0)
                 {
@@ -207,22 +226,17 @@ int main()
                 decryptedMessage[i] = c[newKey];
             }
 
-
+            //Show decrypted Message
             for(int i = 0; i < length; i++)
             {
                 cout << decryptedMessage[i];
             }
             cout << endl;
         }
-
-
-
-
-
+        //Prompt user if they want to continue
         cout << "Would you like to continue? (y/n): ", cin >> loopController, cout << endl;
 
         //Close the file streams as to not encounter error when looping back through
-        ofs.close();
         ifs.close();
     }
 
@@ -237,9 +251,17 @@ int rng(int max)
     int randomN = 1 + rand() % max;
     return randomN;
 }
+
 //Function generates a otp
 void generateOTP()
 {
+    ofs.open("otp.dat");
+    //Error typically happens from read or write privileges
+    if(ofs.fail())
+    {
+        cout << "Unable to open the one time pad.";
+        exit(1);
+    }
     //Generates the One Time Pad file
     //Ten lines
     for(int i = 0; i < 10; i++)
@@ -252,7 +274,10 @@ void generateOTP()
         }
         ofs << endl;
     }
+
+    ofs.close();
 }
+
 //Function checks if the file exists
 bool doesFileExist(char fileName[256])
 {
